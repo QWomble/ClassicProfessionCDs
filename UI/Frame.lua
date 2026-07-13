@@ -4,8 +4,8 @@ local ns = privateTable or ClassicProfessionCDs
 ns.UI = {}
 
 local ROW_HEIGHT = 18
-local FRAME_WIDTH = 420
-local FRAME_HEIGHT = 360
+local FRAME_WIDTH = 440
+local FRAME_HEIGHT = 420
 
 local function ClassColor(classToken)
   if not classToken or not RAID_CLASS_COLORS or not RAID_CLASS_COLORS[classToken] then
@@ -25,44 +25,49 @@ local function BuildRows()
   end
   table.sort(keys)
 
+  -- Stable display order: profession, then spell name.
+  local spellOrder = {}
+  for _, spell in ipairs(ns.SPELLS) do
+    table.insert(spellOrder, spell)
+  end
+  table.sort(spellOrder, function(a, b)
+    if a.profession ~= b.profession then
+      return a.profession < b.profession
+    end
+    return a.name < b.name
+  end)
+
   for _, key in ipairs(keys) do
     local char = characters[key]
     local cds = char.cooldowns or {}
-    local spellIds = {}
-    for spellId, data in pairs(cds) do
-      if data and data.known then
-        table.insert(spellIds, spellId)
-      end
-    end
-    table.sort(spellIds, function(a, b)
-      local na = ns.GetSpellDisplayName(a)
-      local nb = ns.GetSpellDisplayName(b)
-      return na < nb
-    end)
 
-    if #spellIds == 0 then
-      table.insert(rows, {
-        kind = "character",
-        key = key,
-        char = char,
-        empty = true,
-      })
-    else
-      table.insert(rows, {
-        kind = "character",
-        key = key,
-        char = char,
-        empty = false,
-      })
-      for _, spellId in ipairs(spellIds) do
-        local data = cds[spellId]
+    table.insert(rows, {
+      kind = "character",
+      key = key,
+      char = char,
+    })
+
+    for _, spell in ipairs(spellOrder) do
+      local data = cds[spell.id]
+      local known = data and data.known
+      if known then
         local text, ready = ns.Tracker:FormatRemaining(data.readyAt)
         table.insert(rows, {
           kind = "cooldown",
-          spellId = spellId,
+          spellId = spell.id,
           readyText = text,
           ready = ready,
-          profession = ns.SPELL_BY_ID[spellId] and ns.SPELL_BY_ID[spellId].profession or "",
+          learned = true,
+          profession = spell.profession,
+        })
+      else
+        table.insert(rows, {
+          kind = "cooldown",
+          spellId = spell.id,
+          readyText = "Not learned",
+          ready = false,
+          learned = false,
+          profession = spell.profession,
         })
       end
     end
@@ -108,7 +113,7 @@ function ns.UI:Init()
 
   local subtitle = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
   subtitle:SetPoint("TOP", title, "BOTTOM", 0, -4)
-  subtitle:SetText("Alchemy transmutes & Mooncloth — /cpcd")
+  subtitle:SetText("Transmutes, Mooncloth & Salt Shaker — /cpcd")
 
   local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
   close:SetPoint("TOPRIGHT", -4, -4)
@@ -201,7 +206,7 @@ function ns.UI:Refresh()
   if #rows == 0 then
     local row = self:AcquireRow(1)
     row:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, 0)
-    row.left:SetText("No data yet. Open Alchemy/Tailoring or craft on each alt.")
+    row.left:SetText("No characters scanned yet. Log in and /reload, then /cpcd.")
     row.left:SetTextColor(0.7, 0.7, 0.7)
     row.right:SetText("")
     self.content:SetHeight(ROW_HEIGHT)
@@ -220,20 +225,19 @@ function ns.UI:Refresh()
       end
       row.left:SetText(label)
       row.left:SetTextColor(ClassColor(data.char.class))
-      if data.empty then
-        row.right:SetText("no tracked recipes")
-        row.right:SetTextColor(0.5, 0.5, 0.5)
-      else
-        row.right:SetText("")
-      end
+      row.right:SetText("")
     else
       local name = ns.GetSpellDisplayName(data.spellId)
       row.left:SetText("  " .. name)
-      row.left:SetTextColor(0.9, 0.9, 0.9)
       row.right:SetText(data.readyText)
-      if data.ready then
+      if not data.learned then
+        row.left:SetTextColor(0.55, 0.55, 0.55)
+        row.right:SetTextColor(0.55, 0.55, 0.55)
+      elseif data.ready then
+        row.left:SetTextColor(0.9, 0.9, 0.9)
         row.right:SetTextColor(0.2, 0.9, 0.3)
       else
+        row.left:SetTextColor(0.9, 0.9, 0.9)
         row.right:SetTextColor(1, 0.82, 0)
       end
     end
