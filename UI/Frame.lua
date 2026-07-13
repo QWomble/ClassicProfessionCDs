@@ -169,7 +169,7 @@ function ns.UI:Init()
 
   local dropdown = CreateFrame("Frame", "ClassicProfessionCDsCharDropDown", frame, "UIDropDownMenuTemplate")
   dropdown:SetPoint("LEFT", charLabel, "RIGHT", -8, -2)
-  UIDropDownMenu_SetWidth(dropdown, 160)
+  UIDropDownMenu_SetWidth(dropdown, 220)
   UIDropDownMenu_JustifyText(dropdown, "LEFT")
   UIDropDownMenu_Initialize(dropdown, function(_, level)
     local keys, characters = GetSortedCharacterKeys()
@@ -195,132 +195,6 @@ function ns.UI:Init()
     end
   end)
 
-  local addBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-  addBtn:SetSize(48, 22)
-  addBtn:SetPoint("LEFT", dropdown, "RIGHT", -8, 2)
-  addBtn:SetText("Add")
-
-  local removeBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
-  removeBtn:SetSize(60, 22)
-  removeBtn:SetPoint("LEFT", addBtn, "RIGHT", 4, 0)
-  removeBtn:SetText("Remove")
-
-  local addPanelTemplate = BackdropTemplateMixin and "BackdropTemplate" or nil
-  local addPanel = CreateFrame("Frame", "ClassicProfessionCDsAddPanel", frame, addPanelTemplate)
-  addPanel:SetSize(280, 140)
-  addPanel:SetPoint("TOP", frame, "TOP", 0, -90)
-  addPanel:SetFrameStrata("FULLSCREEN_DIALOG")
-  addPanel:Hide()
-  if addPanel.SetBackdrop then
-    addPanel:SetBackdrop({
-      bgFile = "Interface\\Buttons\\WHITE8X8",
-      edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-      tile = true,
-      tileSize = 8,
-      edgeSize = 24,
-      insets = { left = 6, right = 6, top = 6, bottom = 6 },
-    })
-    addPanel:SetBackdropColor(0, 0, 0, 1)
-  end
-
-  local addTitle = addPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  addTitle:SetPoint("TOP", 0, -14)
-  addTitle:SetText("Add character")
-
-  local nameLabel = addPanel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-  nameLabel:SetPoint("TOPLEFT", 24, -38)
-  nameLabel:SetText("Name")
-
-  local nameBox = CreateFrame("EditBox", "ClassicProfessionCDsAddName", addPanel, "InputBoxTemplate")
-  nameBox:SetSize(160, 20)
-  nameBox:SetPoint("LEFT", nameLabel, "RIGHT", 28, 0)
-  nameBox:SetAutoFocus(false)
-  nameBox:SetMaxLetters(12)
-
-  local realmLabel = addPanel:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-  realmLabel:SetPoint("TOPLEFT", nameLabel, "BOTTOMLEFT", 0, -12)
-  realmLabel:SetText("Realm")
-
-  local realmBox = CreateFrame("EditBox", "ClassicProfessionCDsAddRealm", addPanel, "InputBoxTemplate")
-  realmBox:SetSize(160, 20)
-  realmBox:SetPoint("LEFT", realmLabel, "RIGHT", 24, 0)
-  realmBox:SetAutoFocus(false)
-  realmBox:SetMaxLetters(32)
-
-  local addError = addPanel:CreateFontString(nil, "OVERLAY", "GameFontRedSmall")
-  addError:SetPoint("TOPLEFT", realmLabel, "BOTTOMLEFT", 0, -8)
-  addError:SetPoint("RIGHT", -18, 0)
-  addError:SetJustifyH("LEFT")
-  addError:SetText("")
-
-  local function HideAddPanel()
-    addPanel:Hide()
-    nameBox:ClearFocus()
-    realmBox:ClearFocus()
-    addError:SetText("")
-  end
-
-  local function SubmitAddCharacter()
-    local key, _, err = ns.Database:AddCharacter(nameBox:GetText(), realmBox:GetText())
-    if not key then
-      addError:SetText(err or "Could not add character.")
-      return
-    end
-    ns.Database:SetSelectedCharacter(key)
-    HideAddPanel()
-    ns.UI:Refresh()
-  end
-
-  local addOk = CreateFrame("Button", nil, addPanel, "UIPanelButtonTemplate")
-  addOk:SetSize(70, 22)
-  addOk:SetPoint("BOTTOMLEFT", 24, 14)
-  addOk:SetText("Add")
-  addOk:SetScript("OnClick", SubmitAddCharacter)
-
-  local addCancel = CreateFrame("Button", nil, addPanel, "UIPanelButtonTemplate")
-  addCancel:SetSize(70, 22)
-  addCancel:SetPoint("LEFT", addOk, "RIGHT", 8, 0)
-  addCancel:SetText("Cancel")
-  addCancel:SetScript("OnClick", HideAddPanel)
-
-  nameBox:SetScript("OnEnterPressed", SubmitAddCharacter)
-  realmBox:SetScript("OnEnterPressed", SubmitAddCharacter)
-  nameBox:SetScript("OnEscapePressed", HideAddPanel)
-  realmBox:SetScript("OnEscapePressed", HideAddPanel)
-
-  addBtn:SetScript("OnClick", function()
-    nameBox:SetText("")
-    realmBox:SetText(GetRealmName() or "")
-    addError:SetText("")
-    addPanel:Show()
-    nameBox:SetFocus()
-  end)
-
-  StaticPopupDialogs["CPCD_REMOVE_CHARACTER"] = {
-    text = "Remove %s from the character list?",
-    button1 = YES,
-    button2 = NO,
-    OnAccept = function()
-      local key = ns.Database:GetSelectedCharacter()
-      if key and ns.Database:RemoveCharacter(key) then
-        ns.UI:Refresh()
-      end
-    end,
-    timeout = 0,
-    whileDead = true,
-    hideOnEscape = true,
-    preferredIndex = 3,
-  }
-
-  removeBtn:SetScript("OnClick", function()
-    local key = ResolveSelectedKey()
-    local characters = ns.Database:GetAllCharacters()
-    if not key or not characters[key] then
-      return
-    end
-    StaticPopup_Show("CPCD_REMOVE_CHARACTER", CharacterLabel(characters[key], key))
-  end)
-
   local refresh = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
   refresh:SetSize(80, 22)
   refresh:SetPoint("BOTTOMLEFT", 16, 16)
@@ -334,7 +208,7 @@ function ns.UI:Init()
   hint:SetPoint("LEFT", refresh, "RIGHT", 10, 0)
   hint:SetPoint("RIGHT", frame, "RIGHT", -16, 0)
   hint:SetJustifyH("LEFT")
-  hint:SetText("Add alts manually, or log in once. CDs update only while that character is online.")
+  hint:SetText("Log into each alt once (addon enabled) to list them. No recipes still show as Not learned.")
 
   local scroll = CreateFrame("ScrollFrame", "ClassicProfessionCDsScroll", frame, "UIPanelScrollFrameTemplate")
   scroll:SetPoint("TOPLEFT", 20, -86)
@@ -349,7 +223,6 @@ function ns.UI:Init()
   self.rowFrames = {}
   self.subtitle = subtitle
   self.charDropdown = dropdown
-  self.addPanel = addPanel
 
   -- Lightweight ticker while visible so "Ready" flips without a reload.
   frame:SetScript("OnShow", function()
@@ -414,7 +287,7 @@ function ns.UI:Refresh()
   if #rows == 0 then
     local row = self:AcquireRow(1)
     row:SetPoint("TOPLEFT", self.content, "TOPLEFT", 0, 0)
-    row.left:SetText("No characters yet. Use Add, or log into an alt with the addon enabled.")
+    row.left:SetText("No characters yet. Log into each alt with the addon enabled, then /reload.")
     row.left:SetTextColor(0.7, 0.7, 0.7)
     row.right:SetText("")
     self.content:SetHeight(ROW_HEIGHT)
