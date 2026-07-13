@@ -185,10 +185,15 @@ function ns.Tracker:FormatRemaining(readyAt)
     return "Ready", true
   end
 
-  local remaining = readyAt - now
+  local remaining = math.floor(readyAt - now)
+  if remaining < 1 then
+    return "Ready", true
+  end
+
   local days = math.floor(remaining / 86400)
   local hours = math.floor((remaining % 86400) / 3600)
   local minutes = math.floor((remaining % 3600) / 60)
+  local seconds = remaining % 60
 
   local parts = {}
   if days > 0 then
@@ -197,7 +202,13 @@ function ns.Tracker:FormatRemaining(readyAt)
   if hours > 0 or days > 0 then
     table.insert(parts, hours .. "h")
   end
-  table.insert(parts, minutes .. "m")
+  if days > 0 or hours > 0 or minutes > 0 then
+    table.insert(parts, minutes .. "m")
+  end
+  -- Always show seconds once under an hour so the countdown visibly ticks.
+  if days == 0 and hours == 0 then
+    table.insert(parts, seconds .. "s")
+  end
 
   return table.concat(parts, " "), false
 end
