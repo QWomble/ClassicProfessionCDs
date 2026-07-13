@@ -13,6 +13,7 @@ local DEFAULTS = {
     relativePoint = "CENTER",
     x = 0,
     y = 0,
+    selectedCharacter = nil,
   },
 }
 
@@ -126,4 +127,12 @@ function ns.Database:SetUIPosition(point, relativePoint, x, y)
   self.db.ui.relativePoint = relativePoint
   self.db.ui.x = x
   self.db.ui.y = y
+end
+
+function ns.Database:GetSelectedCharacter()
+  return self.db.ui.selectedCharacter
+end
+
+function ns.Database:SetSelectedCharacter(key)
+  self.db.ui.selectedCharacter = key
 end
