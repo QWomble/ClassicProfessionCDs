@@ -327,6 +327,7 @@ end
 
 function ns.UI:Toggle()
   if not self.frame then
+    print("|cff33ff99Classic Profession CDs|r: UI not ready. Try /reload.")
     return
   end
   if self.frame:IsShown() then

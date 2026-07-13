@@ -9,7 +9,7 @@ local ADDON_NAME, privateTable = ...
 
 local ns = privateTable or {}
 ns.ADDON_NAME = ADDON_NAME
-ns.VERSION = "1.2.0"
+ns.VERSION = "1.2.1"
 
 -- Shared namespace used by all files loaded after this one.
 ClassicProfessionCDs = ns
@@ -35,7 +35,6 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1, ...)
       ns.Database:EnsureCharacter()
     end
     ns.UI:Init()
-    ns.MinimapButton:Init()
     return
   end
 
@@ -46,6 +45,17 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1, ...)
   if event == "PLAYER_LOGIN" or event == "PLAYER_ENTERING_WORLD" then
     ns.Database:EnsureCharacter()
     ns.Tracker:Scan()
+    -- Create after Minimap/Cluster exist so the icon isn't masked or skipped.
+    if ns.MinimapButton and not ns.MinimapButton.button then
+      local ok, err = pcall(function()
+        ns.MinimapButton:Init()
+      end)
+      if not ok then
+        print("|cff33ff99Classic Profession CDs|r: minimap button failed: " .. tostring(err))
+      end
+    elseif ns.MinimapButton then
+      ns.MinimapButton:ApplyVisibility()
+    end
     if ns.UI and ns.UI.RefreshIfVisible then
       ns.UI:RefreshIfVisible()
     end
@@ -90,15 +100,16 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1, ...)
   end
 end)
 
-SLASH_CLASSICPROFESSIONCDS1 = "/cd"
-SLASH_CLASSICPROFESSIONCDS2 = "/cpcd"
-SLASH_CLASSICPROFESSIONCDS3 = "/professioncds"
-SlashCmdList.CLASSICPROFESSIONCDS = function(msg)
+local function SlashHandler(msg)
   msg = (msg or ""):match("^%s*(.-)%s*$") or ""
   msg = msg:lower()
 
   if msg == "" or msg == "toggle" then
-    ns.UI:Toggle()
+    if ns.UI and ns.UI.Toggle then
+      ns.UI:Toggle()
+    else
+      print("|cff33ff99Classic Profession CDs|r: UI not ready. Try /reload.")
+    end
   elseif msg == "reset" then
     ns.UI:ResetPosition()
     print("|cff33ff99Classic Profession CDs|r: window position reset.")
@@ -114,6 +125,8 @@ SlashCmdList.CLASSICPROFESSIONCDS = function(msg)
   elseif msg == "minimap" then
     if ns.MinimapButton and ns.MinimapButton.ToggleHide then
       ns.MinimapButton:ToggleHide()
+    else
+      print("|cff33ff99Classic Profession CDs|r: minimap button is not available.")
     end
   elseif msg == "help" then
     print("|cff33ff99Classic Profession CDs|r commands:")
@@ -123,7 +136,28 @@ SlashCmdList.CLASSICPROFESSIONCDS = function(msg)
     print("  /cd wipe — clear all saved data")
     print("  /cd minimap — show/hide minimap button")
     print("  /cd help — this list")
+    print("  Aliases: /cpcd, /professioncds")
   else
     print("|cff33ff99Classic Profession CDs|r: unknown command. Try |cffffffff/cd help|r")
   end
 end
+
+-- Keep /cpcd first in practice for reliability; /cd remains registered too.
+-- (Some other addons also claim /cd for countdown macros.)
+SLASH_CLASSICPROFESSIONCDS1 = "/cd"
+SLASH_CLASSICPROFESSIONCDS2 = "/cpcd"
+SLASH_CLASSICPROFESSIONCDS3 = "/professioncds"
+SlashCmdList["CLASSICPROFESSIONCDS"] = SlashHandler
+
+-- Re-bind after other addons load so /cd and /cpcd stay on this handler when possible.
+local slashFix = CreateFrame("Frame")
+slashFix:RegisterEvent("PLAYER_LOGIN")
+slashFix:SetScript("OnEvent", function()
+  SLASH_CLASSICPROFESSIONCDS1 = "/cd"
+  SLASH_CLASSICPROFESSIONCDS2 = "/cpcd"
+  SLASH_CLASSICPROFESSIONCDS3 = "/professioncds"
+  SlashCmdList["CLASSICPROFESSIONCDS"] = SlashHandler
+  if ChatFrame_ImportAllListsToHash then
+    ChatFrame_ImportAllListsToHash()
+  end
+end)
