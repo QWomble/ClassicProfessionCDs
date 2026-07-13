@@ -169,7 +169,7 @@ function ns.UI:Init()
 
   local dropdown = CreateFrame("Frame", "ClassicProfessionCDsCharDropDown", frame, "UIDropDownMenuTemplate")
   dropdown:SetPoint("LEFT", charLabel, "RIGHT", -8, -2)
-  UIDropDownMenu_SetWidth(dropdown, 220)
+  UIDropDownMenu_SetWidth(dropdown, 180)
   UIDropDownMenu_JustifyText(dropdown, "LEFT")
   UIDropDownMenu_Initialize(dropdown, function(_, level)
     local keys, characters = GetSortedCharacterKeys()
@@ -195,6 +195,41 @@ function ns.UI:Init()
     end
   end)
 
+  local removeBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+  removeBtn:SetSize(70, 22)
+  removeBtn:SetPoint("LEFT", dropdown, "RIGHT", -8, 2)
+  removeBtn:SetText("Remove")
+
+  StaticPopupDialogs["CPCD_REMOVE_CHARACTER"] = {
+    text = "Remove %s from the character list?",
+    button1 = YES,
+    button2 = NO,
+    OnAccept = function(dialog)
+      local key = dialog and dialog.data
+      if key and ns.Database:RemoveCharacter(key) then
+        ns.UI:Refresh()
+        print("|cff33ff99Classic Profession CDs|r: removed character from the list.")
+      end
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    preferredIndex = 3,
+  }
+
+  removeBtn:SetScript("OnClick", function()
+    local key = ResolveSelectedKey()
+    local characters = ns.Database:GetAllCharacters()
+    if not key or not characters[key] then
+      return
+    end
+    if key == ns.Database:CharacterKey() then
+      print("|cff33ff99Classic Profession CDs|r: you can't remove the character you're logged into.")
+      return
+    end
+    StaticPopup_Show("CPCD_REMOVE_CHARACTER", CharacterLabel(characters[key], key), nil, key)
+  end)
+
   local refresh = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
   refresh:SetSize(80, 22)
   refresh:SetPoint("BOTTOMLEFT", 16, 16)
@@ -208,7 +243,7 @@ function ns.UI:Init()
   hint:SetPoint("LEFT", refresh, "RIGHT", 10, 0)
   hint:SetPoint("RIGHT", frame, "RIGHT", -16, 0)
   hint:SetJustifyH("LEFT")
-  hint:SetText("Log into each alt once (addon enabled) to list them. No recipes still show as Not learned.")
+  hint:SetText("Remove inactive alts with Remove. Log into each alt once to list them.")
 
   local scroll = CreateFrame("ScrollFrame", "ClassicProfessionCDsScroll", frame, "UIPanelScrollFrameTemplate")
   scroll:SetPoint("TOPLEFT", 20, -86)

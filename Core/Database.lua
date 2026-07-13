@@ -121,6 +121,17 @@ function ns.Database:GetAllCharacters()
   return self.db.characters
 end
 
+function ns.Database:RemoveCharacter(key)
+  if not key or not self.db.characters[key] then
+    return false
+  end
+  self.db.characters[key] = nil
+  if self.db.ui.selectedCharacter == key then
+    self.db.ui.selectedCharacter = nil
+  end
+  return true
+end
+
 function ns.Database:Wipe()
   self.db.characters = {}
   self:EnsureCharacter()
