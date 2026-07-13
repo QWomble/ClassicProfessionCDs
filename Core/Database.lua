@@ -100,7 +100,8 @@ function ns.Database:ReconcileProfession(profession, seenIds)
 
   for spellId, data in pairs(char.cooldowns) do
     local info = ns.SPELL_BY_ID[spellId]
-    if info and info.profession == profession and data.known and not seenIds[spellId] then
+    -- Item-use CDs (Salt Shaker) are not always trade-skill rows; do not clear them here.
+    if info and not info.itemId and info.profession == profession and data.known and not seenIds[spellId] then
       data.known = false
     end
   end

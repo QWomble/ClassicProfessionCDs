@@ -9,7 +9,7 @@ local ADDON_NAME, privateTable = ...
 
 local ns = privateTable or {}
 ns.ADDON_NAME = ADDON_NAME
-ns.VERSION = "1.0.0"
+ns.VERSION = "1.2.0"
 
 -- Shared namespace used by all files loaded after this one.
 ClassicProfessionCDs = ns
@@ -20,6 +20,7 @@ eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("PLAYER_LOGOUT")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("SPELL_UPDATE_COOLDOWN")
+eventFrame:RegisterEvent("BAG_UPDATE_COOLDOWN")
 eventFrame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 eventFrame:RegisterEvent("TRADE_SKILL_SHOW")
 eventFrame:RegisterEvent("TRADE_SKILL_CLOSE")
@@ -45,7 +46,10 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1, ...)
     end
   elseif event == "PLAYER_LOGOUT" then
     ns.Tracker:Scan()
-  elseif event == "SPELL_UPDATE_COOLDOWN" or event == "TRADE_SKILL_SHOW" or event == "TRADE_SKILL_CLOSE" then
+  elseif event == "SPELL_UPDATE_COOLDOWN"
+    or event == "BAG_UPDATE_COOLDOWN"
+    or event == "TRADE_SKILL_SHOW"
+    or event == "TRADE_SKILL_CLOSE" then
     ns.Tracker:Scan()
     if ns.UI and ns.UI.RefreshIfVisible then
       ns.UI:RefreshIfVisible()

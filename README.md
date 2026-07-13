@@ -1,6 +1,6 @@
 # Classic Profession CDs
 
-Free, open-source World of Warcraft **Classic Era** add-on that tracks **alchemy transmute** and **mooncloth** cooldowns across every character on your account.
+Free, open-source World of Warcraft **Classic Era** add-on that tracks **alchemy transmute**, **mooncloth**, and **salt shaker** cooldowns across every character on your account.
 
 ## Blizzard policy
 
@@ -24,6 +24,7 @@ This add-on is written to follow the [UI Add-On Development Policy](https://us.f
 | Alchemy | Transmute: Mithril to Truesilver | 11480 |
 | Alchemy | Elemental essence transmutes | 17559–17566 |
 | Tailoring | Mooncloth | 18560 |
+| Leatherworking | Salt Shaker | 19566 (item 15846) |
 
 ## Install
 
@@ -44,6 +45,8 @@ This add-on is written to follow the [UI Add-On Development Policy](https://us.f
 | `/cpcd help` | Show commands |
 
 Log into each crafting alt once so the add-on can record known recipes and active cooldowns. Data is stored account-wide in SavedVariables.
+
+Every tracked cooldown is listed for each character. Recipes that character does not know show as **Not learned**; known ones show **Ready** or time remaining.
 
 ## How it works
 

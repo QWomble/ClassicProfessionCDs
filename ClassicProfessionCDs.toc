@@ -1,8 +1,8 @@
 ## Interface: 11508
 ## Title: Classic Profession CDs
-## Notes: Tracks alchemy transmute and mooncloth cooldowns across all characters on this account.
+## Notes: Tracks alchemy transmute, mooncloth, and salt shaker cooldowns across all characters on this account.
 ## Author: Quintin Womble
-## Version: 1.0.0
+## Version: 1.2.0
 ## SavedVariables: ClassicProfessionCDsDB
 ## Category: Professions
 ## X-License: MIT

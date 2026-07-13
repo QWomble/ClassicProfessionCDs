@@ -16,6 +16,46 @@ local function PlayerKnowsSpell(spellId)
   return false
 end
 
+local function PlayerHasItem(itemId)
+  if not itemId or not GetItemCount then
+    return false
+  end
+  local count = GetItemCount(itemId, true)
+  return type(count) == "number" and count > 0
+end
+
+-- Salt Shaker and similar: owned item, known spell, or already saved as known.
+local function PlayerTracksSpell(spell)
+  if PlayerKnowsSpell(spell.id) then
+    return true
+  end
+  if spell.itemId and PlayerHasItem(spell.itemId) then
+    return true
+  end
+  local _, char = ns.Database:EnsureCharacter()
+  if char and char.cooldowns[spell.id] and char.cooldowns[spell.id].known then
+    return true
+  end
+  return false
+end
+
+local function RemainingFromStartDuration(start, duration, enabled)
+  if not start or not duration then
+    return nil
+  end
+  if enabled == 0 then
+    return nil
+  end
+  if start > 0 and duration >= MIN_PROFESSION_CD_SECONDS then
+    local remaining = (start + duration) - GetTime()
+    if remaining < 0 then
+      remaining = 0
+    end
+    return remaining
+  end
+  return 0
+end
+
 local function ReadCooldownRemaining(spellId)
   local name = GetSpellInfo(spellId)
   local start, duration, enabled
@@ -28,23 +68,35 @@ local function ReadCooldownRemaining(spellId)
     start, duration, enabled = GetSpellCooldown(spellId)
   end
 
-  if not start or not duration then
+  return RemainingFromStartDuration(start, duration, enabled)
+end
+
+local function ReadItemCooldownRemaining(itemId)
+  if not itemId or not GetItemCooldown then
     return nil
   end
+  local start, duration, enabled = GetItemCooldown(itemId)
+  return RemainingFromStartDuration(start, duration, enabled)
+end
 
-  if enabled == 0 then
+local function ReadBestRemaining(spell)
+  local spellRemaining = ReadCooldownRemaining(spell.id)
+  local itemRemaining = spell.itemId and ReadItemCooldownRemaining(spell.itemId) or nil
+
+  if spellRemaining == nil and itemRemaining == nil then
     return nil
   end
-
-  if start > 0 and duration >= MIN_PROFESSION_CD_SECONDS then
-    local remaining = (start + duration) - GetTime()
-    if remaining < 0 then
-      remaining = 0
-    end
-    return remaining
+  if spellRemaining == nil then
+    return itemRemaining
   end
-
-  return 0
+  if itemRemaining == nil then
+    return spellRemaining
+  end
+  -- Prefer the longer remaining time (active profession CD over GCD noise).
+  if spellRemaining >= itemRemaining then
+    return spellRemaining
+  end
+  return itemRemaining
 end
 
 -- When the trade skill UI is open, match recipe names to tracked spells.
@@ -76,7 +128,7 @@ local function ScanOpenTradeSkill()
           elseif type(cooldown) == "number" then
             ns.Database:SetCooldown(spell.id, 0, true)
           else
-            local remaining = ReadCooldownRemaining(spell.id)
+            local remaining = ReadBestRemaining(spell)
             if remaining == nil or remaining == 0 then
               ns.Database:SetCooldown(spell.id, 0, true)
             else
@@ -88,8 +140,7 @@ local function ScanOpenTradeSkill()
     end
   end
 
-  -- If we opened Alchemy or Tailoring, drop recipes for that profession that vanished.
-  if skillLineName == "Alchemy" or skillLineName == "Tailoring" then
+  if skillLineName == "Alchemy" or skillLineName == "Tailoring" or skillLineName == "Leatherworking" then
     ns.Database:ReconcileProfession(skillLineName, seenByProfession[skillLineName] or {})
   end
 end
@@ -107,10 +158,9 @@ function ns.Tracker:Scan()
 
   for _, spell in ipairs(ns.SPELLS) do
     local spellId = spell.id
-    if PlayerKnowsSpell(spellId) then
-      local remaining = ReadCooldownRemaining(spellId)
+    if PlayerTracksSpell(spell) then
+      local remaining = ReadBestRemaining(spell)
       if remaining == nil then
-        -- Keep previous saved row; still mark known.
         local _, char = ns.Database:EnsureCharacter()
         if char and not char.cooldowns[spellId] then
           ns.Database:SetCooldown(spellId, 0, true)

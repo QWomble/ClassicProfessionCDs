@@ -1,7 +1,7 @@
 local _, privateTable = ...
 local ns = privateTable or ClassicProfessionCDs
 
--- Classic Era spell IDs (Alchemy transmutes + Mooncloth).
+-- Classic Era spell IDs (Alchemy transmutes, Mooncloth, Salt Shaker).
 -- Source: wowclassicdb / Wowhead Classic spell pages.
 ns.SPELLS = {
   -- Alchemy: metals / arcanite
@@ -78,6 +78,14 @@ ns.SPELLS = {
     name = "Mooncloth",
     profession = "Tailoring",
     category = "cloth",
+  },
+  -- Leatherworking: Salt Shaker is an item-use cooldown (item 15846 → spell 19566)
+  {
+    id = 19566,
+    name = "Salt Shaker",
+    profession = "Leatherworking",
+    category = "salt",
+    itemId = 15846,
   },
 }
 
