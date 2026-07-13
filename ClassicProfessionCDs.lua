@@ -31,6 +31,9 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1, ...)
       return
     end
     ns.Database:Init()
+    if UnitName("player") then
+      ns.Database:EnsureCharacter()
+    end
     ns.UI:Init()
     return
   end
@@ -40,6 +43,7 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1, ...)
   end
 
   if event == "PLAYER_LOGIN" or event == "PLAYER_ENTERING_WORLD" then
+    ns.Database:EnsureCharacter()
     ns.Tracker:Scan()
     if ns.UI and ns.UI.RefreshIfVisible then
       ns.UI:RefreshIfVisible()
