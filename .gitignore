@@ -1,0 +1,14 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+*.code-workspace
+
+# WoW local noise (if someone develops inside AddOns)
+WTF/
+Cache/
+Logs/
+Errors.lua

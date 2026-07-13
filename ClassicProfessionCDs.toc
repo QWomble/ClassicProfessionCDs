@@ -1,0 +1,16 @@
+## Interface: 11508
+## Title: Classic Profession CDs
+## Notes: Tracks alchemy transmute and mooncloth cooldowns across all characters on this account.
+## Author: Quintin Womble
+## Version: 1.0.0
+## SavedVariables: ClassicProfessionCDsDB
+## Category: Professions
+## X-License: MIT
+## X-Website: https://github.com/QWomble/ClassicProfessionCDs
+## X-Category: Profession
+
+ClassicProfessionCDs.lua
+Core\Spells.lua
+Core\Database.lua
+Core\Tracker.lua
+UI\Frame.lua
