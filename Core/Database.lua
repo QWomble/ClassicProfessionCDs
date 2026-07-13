@@ -44,13 +44,30 @@ function ns.Database:GetDB()
   return self.db
 end
 
+local function SeedCooldowns()
+  local cooldowns = {}
+  if ns.SPELLS then
+    for _, spell in ipairs(ns.SPELLS) do
+      cooldowns[spell.id] = { readyAt = 0, known = false }
+    end
+  end
+  return cooldowns
+end
+
+function ns.Database:MakeCharacterKey(name, realm)
+  if not name or name == "" or not realm or realm == "" then
+    return nil
+  end
+  return name .. "-" .. realm
+end
+
 function ns.Database:CharacterKey()
   local name = UnitName("player")
   local realm = GetRealmName()
   if not name or not realm then
     return nil
   end
-  return name .. "-" .. realm
+  return self:MakeCharacterKey(name, realm)
 end
 
 function ns.Database:EnsureCharacter()
@@ -61,18 +78,12 @@ function ns.Database:EnsureCharacter()
 
   local chars = self.db.characters
   if not chars[key] then
-    local cooldowns = {}
-    if ns.SPELLS then
-      for _, spell in ipairs(ns.SPELLS) do
-        cooldowns[spell.id] = { readyAt = 0, known = false }
-      end
-    end
     chars[key] = {
       name = UnitName("player"),
       realm = GetRealmName(),
       class = select(2, UnitClass("player")),
       faction = UnitFactionGroup("player"),
-      cooldowns = cooldowns,
+      cooldowns = SeedCooldowns(),
       updatedAt = GetServerTime(),
     }
   else
@@ -83,6 +94,49 @@ function ns.Database:EnsureCharacter()
   end
 
   return key, chars[key]
+end
+
+-- Manually add a roster entry (cooldowns stay Not learned until that alt is logged in).
+function ns.Database:AddCharacter(name, realm)
+  name = strtrim(name or "")
+  realm = strtrim(realm or "")
+  if name == "" then
+    return nil, "Enter a character name."
+  end
+  if realm == "" then
+    realm = GetRealmName() or ""
+  end
+  if realm == "" then
+    return nil, "Enter a realm name."
+  end
+
+  local key = self:MakeCharacterKey(name, realm)
+  local chars = self.db.characters
+  if chars[key] then
+    return key, chars[key], "Character already in the list."
+  end
+
+  chars[key] = {
+    name = name,
+    realm = realm,
+    class = nil,
+    faction = nil,
+    cooldowns = SeedCooldowns(),
+    updatedAt = GetServerTime(),
+    manual = true,
+  }
+  return key, chars[key]
+end
+
+function ns.Database:RemoveCharacter(key)
+  if not key or not self.db.characters[key] then
+    return false
+  end
+  self.db.characters[key] = nil
+  if self.db.ui.selectedCharacter == key then
+    self.db.ui.selectedCharacter = nil
+  end
+  return true
 end
 
 function ns.Database:SetCooldown(spellId, readyAt, known)
