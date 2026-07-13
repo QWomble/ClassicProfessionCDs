@@ -158,7 +158,7 @@ function ns.UI:Init()
 
   local subtitle = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
   subtitle:SetPoint("TOP", title, "BOTTOM", 0, -4)
-  subtitle:SetText("Transmutes, Mooncloth & Salt Shaker — /cpcd")
+  subtitle:SetText("Transmutes, Mooncloth & Salt Shaker — /cd")
 
   local close = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
   close:SetPoint("TOPRIGHT", -4, -4)

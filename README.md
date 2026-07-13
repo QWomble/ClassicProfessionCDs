@@ -39,10 +39,12 @@ This add-on is written to follow the [UI Add-On Development Policy](https://us.f
 
 | Command | Action |
 |---------|--------|
-| `/cpcd` | Toggle the overview window |
-| `/cpcd reset` | Reset window position |
-| `/cpcd wipe` | Clear all saved cooldown data |
-| `/cpcd help` | Show commands |
+| `/cd` | Toggle the overview window (`/cpcd` and `/professioncds` also work) |
+| `/cd scan` | Refresh current character |
+| `/cd reset` | Reset window position |
+| `/cd wipe` | Clear all saved cooldown data |
+| `/cd minimap` | Show/hide the minimap button |
+| `/cd help` | Show commands |
 
 Log into each crafting alt once so the add-on can record known recipes and active cooldowns. Data is stored account-wide in SavedVariables.
 
