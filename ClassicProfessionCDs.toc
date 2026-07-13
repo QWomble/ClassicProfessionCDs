@@ -2,7 +2,7 @@
 ## Title: Classic Profession CDs
 ## Notes: Tracks alchemy transmute, mooncloth, and salt shaker cooldowns across all characters on this account.
 ## Author: Quintin Womble
-## Version: 1.2.0
+## Version: 1.2.1
 ## SavedVariables: ClassicProfessionCDsDB
 ## Category: Professions
 ## X-License: MIT
@@ -10,8 +10,8 @@
 ## X-Category: Profession
 
 ClassicProfessionCDs.lua
-Core\Spells.lua
-Core\Database.lua
-Core\Tracker.lua
-UI\Frame.lua
-UI\MinimapButton.lua
+Core/Spells.lua
+Core/Database.lua
+Core/Tracker.lua
+UI/Frame.lua
+UI/MinimapButton.lua
