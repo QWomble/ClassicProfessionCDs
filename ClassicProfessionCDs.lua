@@ -35,6 +35,7 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1, ...)
       ns.Database:EnsureCharacter()
     end
     ns.UI:Init()
+    ns.MinimapButton:Init()
     return
   end
 
@@ -89,8 +90,9 @@ eventFrame:SetScript("OnEvent", function(_, event, arg1, ...)
   end
 end)
 
-SLASH_CLASSICPROFESSIONCDS1 = "/cpcd"
-SLASH_CLASSICPROFESSIONCDS2 = "/professioncds"
+SLASH_CLASSICPROFESSIONCDS1 = "/cd"
+SLASH_CLASSICPROFESSIONCDS2 = "/cpcd"
+SLASH_CLASSICPROFESSIONCDS3 = "/professioncds"
 SlashCmdList.CLASSICPROFESSIONCDS = function(msg)
   msg = (msg or ""):match("^%s*(.-)%s*$") or ""
   msg = msg:lower()
@@ -109,14 +111,19 @@ SlashCmdList.CLASSICPROFESSIONCDS = function(msg)
     ns.Tracker:Scan()
     ns.UI:RefreshIfVisible()
     print("|cff33ff99Classic Profession CDs|r: scanned current character.")
+  elseif msg == "minimap" then
+    if ns.MinimapButton and ns.MinimapButton.ToggleHide then
+      ns.MinimapButton:ToggleHide()
+    end
   elseif msg == "help" then
     print("|cff33ff99Classic Profession CDs|r commands:")
-    print("  /cpcd — toggle window")
-    print("  /cpcd scan — refresh current character")
-    print("  /cpcd reset — reset window position")
-    print("  /cpcd wipe — clear all saved data")
-    print("  /cpcd help — this list")
+    print("  /cd — toggle window")
+    print("  /cd scan — refresh current character")
+    print("  /cd reset — reset window position")
+    print("  /cd wipe — clear all saved data")
+    print("  /cd minimap — show/hide minimap button")
+    print("  /cd help — this list")
   else
-    print("|cff33ff99Classic Profession CDs|r: unknown command. Try |cffffffff/cpcd help|r")
+    print("|cff33ff99Classic Profession CDs|r: unknown command. Try |cffffffff/cd help|r")
   end
 end

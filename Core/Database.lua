@@ -14,6 +14,8 @@ local DEFAULTS = {
     x = 0,
     y = 0,
     selectedCharacter = nil,
+    minimapAngle = 220,
+    minimapHide = false,
   },
 }
 
@@ -141,4 +143,20 @@ end
 
 function ns.Database:SetSelectedCharacter(key)
   self.db.ui.selectedCharacter = key
+end
+
+function ns.Database:GetMinimapAngle()
+  return self.db.ui.minimapAngle
+end
+
+function ns.Database:SetMinimapAngle(angle)
+  self.db.ui.minimapAngle = angle
+end
+
+function ns.Database:GetMinimapHide()
+  return self.db.ui.minimapHide
+end
+
+function ns.Database:SetMinimapHide(hide)
+  self.db.ui.minimapHide = hide and true or false
 end
