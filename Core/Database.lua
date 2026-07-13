@@ -61,12 +61,18 @@ function ns.Database:EnsureCharacter()
 
   local chars = self.db.characters
   if not chars[key] then
+    local cooldowns = {}
+    if ns.SPELLS then
+      for _, spell in ipairs(ns.SPELLS) do
+        cooldowns[spell.id] = { readyAt = 0, known = false }
+      end
+    end
     chars[key] = {
       name = UnitName("player"),
       realm = GetRealmName(),
       class = select(2, UnitClass("player")),
       faction = UnitFactionGroup("player"),
-      cooldowns = {},
+      cooldowns = cooldowns,
       updatedAt = GetServerTime(),
     }
   else
