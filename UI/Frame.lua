@@ -224,7 +224,7 @@ function ns.UI:Init()
   self.subtitle = subtitle
   self.charDropdown = dropdown
 
-  -- Lightweight ticker while visible so "Ready" flips without a reload.
+  -- Tick once a second while visible so active countdown timers update live.
   frame:SetScript("OnShow", function()
     ns.Tracker:Scan()
     ns.UI:Refresh()
@@ -232,9 +232,9 @@ function ns.UI:Init()
       self.ticker:Cancel()
     end
     if C_Timer and C_Timer.NewTicker then
-      self.ticker = C_Timer.NewTicker(30, function()
+      self.ticker = C_Timer.NewTicker(1, function()
         if frame:IsShown() then
-          ns.UI:Refresh()
+          ns.UI:Refresh(true)
         end
       end)
     end
@@ -272,12 +272,14 @@ function ns.UI:AcquireRow(index)
   return row
 end
 
-function ns.UI:Refresh()
+function ns.UI:Refresh(skipDropdown)
   if not self.frame then
     return
   end
 
-  self:UpdateCharDropdown()
+  if not skipDropdown then
+    self:UpdateCharDropdown()
+  end
   self:ClearRows()
 
   local selectedKey = ResolveSelectedKey()
