@@ -72,6 +72,13 @@ ns.SPELLS = {
     profession = "Alchemy",
     category = "transmute",
   },
+  -- Alchemy: Heart of Fire → 3x Elemental Fire (10 min CD; Thorium Brotherhood)
+  {
+    id = 25146,
+    name = "Transmute: Elemental Fire",
+    profession = "Alchemy",
+    category = "transmute",
+  },
   -- Tailoring
   {
     id = 18560,

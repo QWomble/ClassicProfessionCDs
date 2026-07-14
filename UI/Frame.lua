@@ -259,6 +259,9 @@ function ns.UI:Init()
   self.subtitle = subtitle
   self.charDropdown = dropdown
 
+  -- Replace Blizzard UIDropDownMenuTemplate's default "Custom" label immediately.
+  self:UpdateCharDropdown()
+
   -- Tick once a second while visible so active countdown timers update live.
   frame:SetScript("OnShow", function()
     ns.Tracker:Scan()
