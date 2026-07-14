@@ -23,6 +23,7 @@ This add-on is written to follow the [UI Add-On Development Policy](https://us.f
 | Alchemy | Transmute: Iron to Gold | 11479 |
 | Alchemy | Transmute: Mithril to Truesilver | 11480 |
 | Alchemy | Elemental essence transmutes | 17559–17566 |
+| Alchemy | Transmute: Elemental Fire | 25146 |
 | Tailoring | Mooncloth | 18560 |
 | Leatherworking | Salt Shaker | 19566 (item 15846) |
 
