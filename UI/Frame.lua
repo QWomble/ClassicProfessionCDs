@@ -135,6 +135,8 @@ function ns.UI:Init()
   end)
   frame:SetFrameStrata("DIALOG")
   frame:Hide()
+  -- Allow Escape to close the window (same behavior as most Blizzard panels).
+  tinsert(UISpecialFrames, "ClassicProfessionCDsFrame")
 
   if frame.SetBackdrop then
     frame:SetBackdrop({
