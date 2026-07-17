@@ -5,6 +5,9 @@ ns.Tracker = {}
 
 -- Ignore global cooldown and other short timers.
 local MIN_PROFESSION_CD_SECONDS = 60
+-- Longest tracked Classic Era profession CD is Mooncloth (~3d 20h). Anything beyond
+-- this is treated as corrupt (e.g. GetSpellCooldown wraparound after a reboot).
+local MAX_PROFESSION_CD_SECONDS = 4 * 86400
 
 local function PlayerKnowsSpell(spellId)
   if IsPlayerSpell and IsPlayerSpell(spellId) then
@@ -39,6 +42,35 @@ local function PlayerTracksSpell(spell)
   return false
 end
 
+-- Correct remaining time when GetSpellCooldown/GetItemCooldown return a wrapped
+-- start after a system reboot (https://github.com/Stanzilla/WoWUIBugs/issues/47).
+-- Without this, (start + duration) - GetTime() can show ~50 days for a 2-day CD.
+local function CooldownRemainingSeconds(start, duration)
+  local now = GetTime()
+  local remaining
+  if start < now then
+    remaining = (start + duration) - now
+  else
+    local wall = time()
+    local startupTime = wall - now
+    local cdTime = (2 ^ 32) / 1000 - start
+    local cdStartTime = startupTime - cdTime
+    remaining = (cdStartTime + duration) - wall
+  end
+
+  if remaining < 0 then
+    remaining = 0
+  end
+  -- Remaining can never exceed the API-reported duration for a single CD cycle.
+  if remaining > duration then
+    remaining = duration
+  end
+  if remaining > MAX_PROFESSION_CD_SECONDS then
+    remaining = MAX_PROFESSION_CD_SECONDS
+  end
+  return remaining
+end
+
 local function RemainingFromStartDuration(start, duration, enabled)
   if not start or not duration then
     return nil
@@ -47,13 +79,38 @@ local function RemainingFromStartDuration(start, duration, enabled)
     return nil
   end
   if start > 0 and duration >= MIN_PROFESSION_CD_SECONDS then
-    local remaining = (start + duration) - GetTime()
-    if remaining < 0 then
-      remaining = 0
-    end
-    return remaining
+    return CooldownRemainingSeconds(start, duration)
   end
   return 0
+end
+
+local function ClampTradeSkillCooldown(cooldown)
+  if type(cooldown) ~= "number" then
+    return cooldown
+  end
+  if cooldown < 0 then
+    return 0
+  end
+  if cooldown > MAX_PROFESSION_CD_SECONDS then
+    return MAX_PROFESSION_CD_SECONDS
+  end
+  return cooldown
+end
+
+-- Drop absurd readyAt values left over from the pre-fix wraparound bug.
+local function SanitizeStoredCooldowns()
+  local now = GetServerTime()
+  local characters = ns.Database:GetAllCharacters()
+  if not characters then
+    return
+  end
+  for _, char in pairs(characters) do
+    for _, data in pairs(char.cooldowns or {}) do
+      if data and type(data.readyAt) == "number" and data.readyAt > now + MAX_PROFESSION_CD_SECONDS then
+        data.readyAt = 0
+      end
+    end
+  end
 end
 
 local function ReadCooldownRemaining(spellId)
@@ -122,7 +179,7 @@ local function ScanOpenTradeSkill()
           seenByProfession[spell.profession] = seenByProfession[spell.profession] or {}
           seenByProfession[spell.profession][spell.id] = true
 
-          local cooldown = GetTradeSkillCooldown and GetTradeSkillCooldown(i)
+          local cooldown = ClampTradeSkillCooldown(GetTradeSkillCooldown and GetTradeSkillCooldown(i))
           if type(cooldown) == "number" and cooldown >= MIN_PROFESSION_CD_SECONDS then
             ns.Database:SetCooldown(spell.id, GetServerTime() + cooldown, true)
           elseif type(cooldown) == "number" then
@@ -155,6 +212,7 @@ function ns.Tracker:Scan()
   end
 
   ns.Database:EnsureCharacter()
+  SanitizeStoredCooldowns()
 
   for _, spell in ipairs(ns.SPELLS) do
     local spellId = spell.id
@@ -186,6 +244,10 @@ function ns.Tracker:FormatRemaining(readyAt)
   end
 
   local remaining = math.floor(readyAt - now)
+  -- Guard display against any leftover wraparound saves.
+  if remaining > MAX_PROFESSION_CD_SECONDS then
+    return "Ready", true
+  end
   if remaining < 1 then
     return "Ready", true
   end
